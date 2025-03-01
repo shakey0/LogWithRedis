@@ -3,9 +3,17 @@
 require 'redis'
 require 'json'
 require 'colorize'
+require 'pygments'
 
 class LogWithRedis
-  COLORS = %w[yellow blue red green cyan]
+  COLORS = {
+    'yellow' => :light_yellow,
+    'blue' => :light_blue,
+    'red' => :light_red,
+    'green' => :light_green,
+    'cyan' => :light_cyan,
+    'magenta' => :light_magenta
+  }
 
   def initialize
     @redis = Redis.new
@@ -15,7 +23,7 @@ class LogWithRedis
     input = gets.chomp
     @base_key = input.empty? ? 'lwr' : input
     
-    puts "Connected to Redis, monitoring list '#{@base_key}' and colored variants..."
+    puts "Connected to Redis, monitoring list '#{@base_key}'..."
     puts "Press Ctrl+C to exit"
     puts "--------------------------------------------------"
   end
@@ -35,46 +43,40 @@ class LogWithRedis
 
   private
 
-  def colorize_json(json) # !!!!!!!!!! THIS PART NEEDS FIXING !!!!!!!!!!
-    json.gsub(/"(.*?)":/) { |match| match.colorize(:cyan) }  # Keys in cyan
-        .gsub(/: "(.*?)"/) { |match| match.colorize(:green) } # Strings in green
-        .gsub(/: (\d+)/) { |match| match.colorize(:yellow) }    # Numbers in yellow
-        .gsub(/: (true|false)/) { |match| match.colorize(:red) } # Booleans in red
-  end
-
   def process_logs
-    # Check all possible keys (base key and all color variants)
-    all_keys = [@redis.keys("#{@base_key}"), @redis.keys("#{@base_key}-*")].flatten.compact
-    
-    all_keys.each do |key|
-      # Extract color from key if present
+    # Check only the base key
+    while (log_entry = @redis.rpop(@base_key))
+      # Extract color from the entry if present (---color format)
       color = nil
-      if key.include?('-')
-        base, color_name = key.split('-', 2)
-        color = color_name if COLORS.include?(color_name)
+      content = log_entry
+      
+      # Check if the entry ends with ---color
+      COLORS.keys.each do |color_name|
+        if log_entry.end_with?("---#{color_name}")
+          color = COLORS[color_name]
+          # Remove the color tag from the content
+          content = log_entry.gsub(/---#{color_name}$/, '')
+          break
+        end
       end
       
-      # Use RPOP to get items in the order they were added (FIFO)
-      while (log_entry = @redis.rpop(key))
-        parsed_entry = parse_entry(log_entry)
-        
-        # Print empty line before each log entry
-        puts
+      # Parse the entry
+      parsed_entry = parse_entry(content)
+      
+      # Print empty line before each log entry
+      puts
 
-        # Print the entry
-        if parsed_entry.is_a?(Hash) || parsed_entry.is_a?(Array)
-          output = JSON.pretty_generate(parsed_entry)
-          if color
-            puts output.colorize(color.to_sym)
-          else
-            puts colorize_json(output)
-          end
+      # Print the entry
+      if parsed_entry.is_a?(Hash) || parsed_entry.is_a?(Array)
+        # For JSON objects, just print the JSON without special coloring
+        output = JSON.pretty_generate(parsed_entry)
+        puts Pygments.highlight(output, lexer: 'json', formatter: 'terminal256', options: { style: 'monokai' })
+      else
+        # For strings, apply the color if one was specified
+        if color
+          puts parsed_entry.to_s.colorize(color)
         else
-          if color
-            puts parsed_entry.to_s.colorize(color.to_sym)
-          else
-            puts parsed_entry.to_s
-          end
+          puts parsed_entry.to_s
         end
       end
     end
