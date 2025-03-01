@@ -13,10 +13,7 @@ $redis.lpush("lwr", "Test string---green")
 
 ### Terminal Output:
 
-<div style="background-color: #333; padding: 10px; border-radius: 5px;">
-<pre style="color: #FFFFFF; margin: 0;">Test string</pre>
-<pre style="color: #8EFFA0; margin: 0;">Test string</pre>
-</div>
+![String Output](example_screenshots/string_output.png)
 
 ## Available Colors
 
@@ -31,19 +28,14 @@ You can colorize your log entries by appending `---color` to your string, where 
 
 ## JSON Handling
 
-JSON objects are automatically detected and pretty-printed (without colorization):
+JSON objects are automatically detected and pretty-printed with colorization:
 
 ```ruby
 $redis.lpush("lwr", '{"name":"John","age":30}')
 ```
 
 Output:
-```json
-{
-  "name": "John",
-  "age": 30
-}
-```
+![JSON Output](example_screenshots/json_output.png)
 
 ## ActiveRecord Object Handling
 
@@ -55,26 +47,7 @@ $redis.lpush("lwr", pets.to_json)
 ```
 
 Output:
-```json
-{
-  "id" : 1,
-  "name": "John",
-  "age": 30
-}
-
-[
-  {
-    "id": 1,
-    "name": "Lucy",
-    "animal": "Cat"
-  },
-    {
-    "id": 2,
-    "name": "Jake",
-    "animal": "Parrot"
-  }
-]
-```
+![ActiveRecord Output](example_screenshots/activerecord_output.png)
 
 ## Installation
 
