@@ -34,7 +34,6 @@ JSON objects are automatically detected and pretty-printed with colorization:
 $redis.lpush("lwr", '{"name":"John","age":30}')
 ```
 
-Output:
 ![JSON Output](example_screenshots/json_output.png)
 
 ## ActiveRecord Object Handling
@@ -46,7 +45,6 @@ $redis.lpush("lwr", user.to_json)
 $redis.lpush("lwr", pets.to_json)
 ```
 
-Output:
 ![ActiveRecord Output](example_screenshots/activerecord_output.png)
 
 ## Installation
