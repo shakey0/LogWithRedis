@@ -50,6 +50,6 @@ $redis.lpush("lwr", pets.to_json)
 ## Installation
 
 1. Clone the repository and `cd LogWithRedis`
-2. Install the required gems: `gem install redis json colorize pygments`
+2. Install the required gems: `gem install redis json colorize pygments.rb`
 3. Make the script executable: `chmod +x log_with_redis.rb`
 4. Run the script with `./log_with_redis.rb`
